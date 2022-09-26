@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstddef>
+#include <array>
 
 /* Table of CRCs of all 8-bit messages. */
 uint32_t crc_table[256];
@@ -64,9 +65,7 @@ int main()
         0x00
     };
     uint32_t crcVal = crc(reinterpret_cast<std::byte*>(input), std::size(input));
-    uint8_t expected[]{
-        0xeb, 0xaa, 0x38, 0x2c
-    };
+    //uint8_t expected[]{ 0xeb, 0xaa, 0x38, 0x2c };
 
     std::cout << std::hex << crcVal << std::endl;
 
@@ -76,14 +75,21 @@ int main()
     std::cout << std::endl;
 
 
-    static const auto printBytes = [](const uint32_t x)
+    static const auto printBytes = []<typename T>(T x)
     {
-        const std::byte* ptr = reinterpret_cast<const std::byte*>(&x);
+        std::byte* ptr = reinterpret_cast<std::byte*>(&x);
 
         std::cout << std::hex << std::left;
         for (size_t i = 0; i < sizeof(x); i++)
             std::cout << std::setw(2) << std::to_integer<unsigned short>(ptr[i]) << " ";
         std::cout << std::endl;
+    };
+
+    static const auto toEndian = []<typename T>(const T& x, std::endian desired = std::endian::big) -> T
+    {
+        if (std::endian::native == desired)
+            return x;
+        return std::byteswap(x);
     };
 
     uint32_t val1 = 0xDEADBEEF;
@@ -95,4 +101,6 @@ int main()
     printBytes(std::byteswap(val1));
 
     printBytes(crcVal);
+
+    printBytes(toEndian(crcVal));
 }
